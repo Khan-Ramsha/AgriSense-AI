@@ -1,0 +1,1 @@
+'''Configuration for invoking a model'''
