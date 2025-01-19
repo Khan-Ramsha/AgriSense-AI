@@ -24,7 +24,7 @@ model_config = ModelConfig(
     model_id="meta-llama/llama-3-2-90b-vision-instruct",
     api_key=os.getenv("APIKEY"),
     project_id=os.getenv("PROJECT_ID"),
-    url="https://au-syd.ml.cloud.ibm.com"
+    url="https://us-south.ml.cloud.ibm.com"
 )
 
 plant_analyzer = PlantImageAnalyzer(model_config)
@@ -50,7 +50,6 @@ async def analyze_image(
         return {"response": response}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)

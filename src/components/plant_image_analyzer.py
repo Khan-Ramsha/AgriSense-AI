@@ -14,6 +14,7 @@ class PlantImageAnalyzer:
 
     def analyze_plant_image(self, user_query, encoded_image):
         """Analyze plant image using the Watson model."""
+        
         messages = ApiCall.augment_api_request_body(user_query, encoded_image)
         response = self.model.chat(messages=messages)
         return response['choices'][0]['message']['content']
