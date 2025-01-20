@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from src.components.model_config import ModelConfig
 from src.components.plant_image_analyzer import PlantImageAnalyzer
 from src.components.summary import Summarizer
-
+from src.components.user_query import UserQUERY
 load_dotenv()
 
 app = Flask(__name__, static_folder='static', template_folder='.')
@@ -21,16 +21,18 @@ model_config = ModelConfig(
 )
 HUGGINGFACE_TOKEN = os.getenv("HUGGINGFACE_TOKEN")
 
-# model config for LLM (for generating convo summary)
-# model_config_summary = ModelConfig(
-#     model_id="ibm/granite-3-8b-instruct",
-#     api_key=os.getenv("APIKEY"),
-#     project_id=os.getenv("PROJECT_ID"),
-#     url="https://jp-tok.ml.cloud.ibm.com"
-# )
+# model config for LLM (for generating answering user queries!)
+model_config_answering = ModelConfig(
+    model_id="ibm/granite-3-8b-instruct",
+    api_key=os.getenv("APIKEY"),
+    project_id=os.getenv("PROJECT_ID"),
+    url="https://jp-tok.ml.cloud.ibm.com"
+)
 
+#creating instance
 plant_analyzer = PlantImageAnalyzer(model_config)
 summary_generator = Summarizer(HUGGINGFACE_TOKEN, "mistralai/Mistral-7B-Instruct-v0.3")
+generating_answer = UserQUERY(model_config_answering)
 
 authenticator = IAMAuthenticator(os.getenv("CLOUDANT_API_KEY"))
 cloudant_client = CloudantV1(authenticator=authenticator)
@@ -61,13 +63,17 @@ def upload():
         return jsonify({"error": "No file uploaded"}), 400
 
     session_id = str(uuid4())
+    assets_folder = "src/assets"
+    if not os.path.exists(assets_folder):
+        os.makedirs(assets_folder)
 
+    file_path = os.path.join(assets_folder, file.filename)
+    file.save(file_path)
     if file.filename.lower().endswith(('.png', '.jpg', '.jpeg')):
         encoded_image = plant_analyzer.encode_image(file.read())
         response = plant_analyzer.analyze_plant_image(user_query, encoded_image)
         print(response) #response seems to be correct
     elif file.filename.lower().endswith('.pdf'):
-        # Implement PDF processing here 
         response = "PDF processing not implemented yet"
     else:
         return jsonify({"error": "Unsupported file type"}), 400
@@ -99,17 +105,19 @@ def ask():
         return jsonify({"error": "Missing query or session_id"}), 400
 
     try:
-        # Retrieve the session data
-        session_doc = db.get_document(session_id).result
+        session_doc = cloudant_client.get_document(db=DB_NAME, doc_id=session_id).get_result()
         summary = session_doc.get("summary", "")
+        response = generating_answer.passTOLLM(summary, query) #pass this to LLM
+        print(f"Response from Model: {response}")
 
-        # Generate response based on the summary and new query
-        response = summary_generator.generate_response(summary, query)
+        content = f"User asked query: {query} \n Response from LVM: {response} \n User's conversation history so far: {summary}"
 
-        # Update the summary
-        new_summary = summary_generator.generate_summary(summary, query, response)
+        summary_generator.login_to_huggingface()
+        summary_generator.load_model()
+        new_summary = summary_generator.generate_summary(content) 
         session_doc["summary"] = new_summary
-        db.put_document(session_id, session_doc)
+
+        cloudant_client.put_document(db=DB_NAME, doc_id=session_id, document=session_doc).get_result()
 
         return jsonify({"response": response})
     except Exception as e:

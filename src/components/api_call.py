@@ -20,3 +20,17 @@ class ApiCall:
         ]
         return messages
 
+    @staticmethod
+    def augment_api_request_body_LLM(content):
+        messages = [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": ("You are a plant expert assistant.Answer the user's plant-related query using their conversation history:" + content)
+                    }
+                ]
+            }
+        ]
+        return messages
