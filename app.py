@@ -8,6 +8,7 @@ from src.components.model_config import ModelConfig
 from src.components.plant_image_analyzer import PlantImageAnalyzer
 from src.components.summary import Summarizer
 from src.components.user_query import UserQUERY
+from src.components.extract import extract_text
 load_dotenv()
 
 app = Flask(__name__, static_folder='static', template_folder='.')
@@ -74,7 +75,22 @@ def upload():
         response = plant_analyzer.analyze_plant_image(user_query, encoded_image)
         print(response) #response seems to be correct
     elif file.filename.lower().endswith('.pdf'):
-        response = "PDF processing not implemented yet"
+        print(f"PDF file saved, checking content...")
+        with open(file_path, 'rb') as f:
+            file_content = f.read()
+            print(f"PDF content length: {len(file_content)} bytes")
+        
+        pdf_content = extract_text(file_path)
+        print(f"Extracted PDF content length: {len(pdf_content)}")
+        print(pdf_content)
+        #summarize the pdf content 
+        summary_generator.login_to_huggingface()
+        summary_generator.load_model()
+        summary = summary_generator.generate_summary_pdf(pdf_content)
+        print(user_query)
+        print(summary)
+        #sending summary + user_query to LLM
+
     else:
         return jsonify({"error": "Unsupported file type"}), 400
     print(f"User asked query: {user_query} \n Response from LVM: {response}")#correct output

@@ -17,7 +17,7 @@ class Summarizer:
     def load_model(self):
         self.llm = HuggingFaceEndpoint(
             repo_id=self.repo_id, 
-            max_length=100, 
+            max_length=50, 
             temperature=0.7, 
             token=self.hf_token
         )
@@ -26,6 +26,20 @@ class Summarizer:
         system_prompt = (
             "You are a summarizer assistant. You will receive the user query and vision model response. "
             "Your task is to summarize the conversation. Be concise: "
+        )
+
+        user_prompt = (
+            f"""
+            Here is the content: "{content}"
+            """
+        )
+
+        prompt = system_prompt + user_prompt
+        result = self.llm.invoke(prompt)
+        return result
+    def generate_summary_pdf(self, content):
+        system_prompt = (
+            "You are a summarizer assistant. You will receive the content of pdf containing information about plants, summarize it: "
         )
 
         user_prompt = (
