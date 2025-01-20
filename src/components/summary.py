@@ -17,7 +17,7 @@ class Summarizer:
     def load_model(self):
         self.llm = HuggingFaceEndpoint(
             repo_id=self.repo_id, 
-            max_length=200, 
+            max_length=100, 
             temperature=0.7, 
             token=self.hf_token
         )
