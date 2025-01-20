@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farmer's Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Farmer's Assistant</h1>
+            <p>Your AI-powered farming companion</p>
+        </header>
+        
+        <main>
+            <section id="interaction-section">
+                <div id="file-upload-area">
+                    <h2>Upload Image or Document</h2>
+                    <form id="upload-form">
+                        <div class="form-group">
+                            <label for="file">Choose a file:</label>
+                            <input type="file" id="file" name="file" accept="image/*,.pdf" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="query">Your question:</label>
+                            <textarea id="query" name="query" rows="3" placeholder="Ask about the uploaded file..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn">Upload & Ask</button>
+                    </form>
+                </div>
+                <div id="chat-area" style="display:none;">
+                    <h2>Chat with Assistant</h2>
+                    <div id="chat-history"></div>
+                    <form id="chat-form">
+                        <div class="form-group">
+                            <label for="chat-query">Your question:</label>
+                            <textarea id="chat-query" name="query" rows="3" placeholder="Ask a follow-up question..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn">Ask</button>
+                    </form>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2024 Farmer's Assistant. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
