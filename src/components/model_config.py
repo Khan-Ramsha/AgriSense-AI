@@ -8,7 +8,7 @@ class ModelConfig:
         self.api_key = api_key
         self.project_id = project_id
         self.url = url
-        self.params = {"max_tokens": 70}
+        self.params = {"max_tokens": 15}
 
     def get_model(self):
         """Return model configuration details."""
