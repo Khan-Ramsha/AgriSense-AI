@@ -3,3 +3,4 @@ ibm-cloud-sdk-core
 cloudant
 python-dotenv
 ibmcloudant
+PyPDF2
