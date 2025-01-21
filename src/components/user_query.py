@@ -13,3 +13,10 @@ class UserQUERY:
         messages = ApiCall.augment_api_request_body_LLM(content)
         response = self.model.chat(messages=messages)
         return response['choices'][0]['message']['content']
+    
+    def answer_a_question(self, content, query):
+        content = f"Document content: {content} \n query: {query}"
+        print(content) 
+        messages = ApiCall.augment_api_request_body_doc(content)
+        response = self.model.chat(messages=messages)
+        return response['choices'][0]['message']['content']

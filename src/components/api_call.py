@@ -8,7 +8,7 @@ class ApiCall:
                     {
                         "type": "text",
                         "text": (
-                           "Analyze the plant image for health issues (diseased, abnormal, or healthy). " 
+                           "Analyze the plant image for health issues(diseased, abnormal, or healthy). " 
                            "Answer to user's question concisely: " + user_query    )
                     },
                     {
@@ -29,6 +29,21 @@ class ApiCall:
                     {
                         "type": "text",
                         "text": ("You are a plant expert assistant.Answer the user's plant-related query using their conversation history:" + content)
+                    }
+                ]
+            }
+        ]
+        return messages
+
+    @staticmethod
+    def augment_api_request_body_doc(content):
+        messages = [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": ("You are a plant expert assistant.Answer the user's plant-related query using the document content:" + content)
                     }
                 ]
             }

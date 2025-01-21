@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (response.ok) {
                 sessionId = data.session_id;
+                console.log("SessionID: ", sessionId) //debugging
                 fileUploadArea.style.display = 'none';
                 chatArea.style.display = 'block';
                 addMessageToChat('user', formData.get('query'));
@@ -38,7 +39,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const query = document.getElementById('chat-query').value.trim();
         
         if (!query) return;
-
+        if (!sessionId) {
+            alert('No active session. Please upload a file first.');
+            return;
+        }
         addMessageToChat('user', query);
         document.getElementById('chat-query').value = '';
 
