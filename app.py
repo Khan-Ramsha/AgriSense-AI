@@ -18,7 +18,7 @@ model_config = ModelConfig(
     model_id="meta-llama/llama-3-2-11b-vision-instruct",
     api_key=os.getenv("APIKEY"),
     project_id=os.getenv("PROJECT_ID"),
-    url="https://jp-tok.ml.cloud.ibm.com"
+    url="https://eu-gb.ml.cloud.ibm.com"
 )
 HUGGINGFACE_TOKEN = os.getenv("HUGGINGFACE_TOKEN")
 
@@ -27,7 +27,7 @@ model_config_answering = ModelConfig(
     model_id="ibm/granite-3-8b-instruct",
     api_key=os.getenv("APIKEY"),
     project_id=os.getenv("PROJECT_ID"),
-    url="https://jp-tok.ml.cloud.ibm.com"
+    url="https://eu-gb.ml.cloud.ibm.com"
 )
 
 # creating instances
@@ -41,34 +41,12 @@ cloudant_client.set_service_url("https://3809a24d-510f-4606-a021-66fd61c13d0b-bl
 
 DB_NAME = "session-data"
 
-# Create search index for session_id
-def setup_database():
-    try:
-        cloudant_client.get_database_information(db=DB_NAME).get_result()
-        print(f"Database '{DB_NAME}' exists.")
-        
-        search_index = {
-            "index": {
-                "fields": ["session_id"]
-            },
-            "name": "session-id-index",
-            "type": "json"
-        }
-        
-        try:
-            cloudant_client.post_index(
-                db=DB_NAME,
-                index=search_index
-            ).get_result()
-            print("Search index created/updated successfully.")
-        except Exception as e:
-            print(f"Index setup error: {e}")
-            
-    except Exception as e:
-        print(f"Database setup error: {e}")
-
-setup_database()
-
+try:
+    cloudant_client.get_database_information(db=DB_NAME).get_result()
+    print(f"Database '{DB_NAME}' already exists.")
+except Exception as e:
+    print(f"Database setup error: {e}")
+     
 def get_document_by_session_id(session_id):
     selector = {
         "session_id": session_id
@@ -105,6 +83,7 @@ def upload():
         return jsonify({"error": "No file uploaded"}), 400
 
     session_id = str(uuid4())
+    print(session_id)
     assets_folder = "src/assets"
     if not os.path.exists(assets_folder):
         os.makedirs(assets_folder)
@@ -123,7 +102,9 @@ def upload():
         summary_generator.login_to_huggingface()
         summary_generator.load_model()
         summary = summary_generator.generate_summary_pdf(pdf_content)
+        print(f"Summary of PDF content : {summary}")
         response = generating_answer.answer_a_question(summary, user_query)
+        print(response)
     else:
         return jsonify({"error": "Unsupported file type"}), 400
 
@@ -136,6 +117,7 @@ def upload():
         "session_id": session_id,
         "summary": summary
     }
+    print(session_data)
 
     try:
         cloudant_client.post_document(db=DB_NAME, document=session_data).get_result()
@@ -151,7 +133,7 @@ def ask():
     data = request.json
     query = data.get("query")
     session_id = data.get("session_id")
-    
+    print(session_id)
     if not query or not session_id:
         return jsonify({"error": "Missing query or session_id"}), 400
 
@@ -172,7 +154,7 @@ def ask():
         new_summary = summary_generator.generate_summary(content) 
         
         session_doc["summary"] = new_summary
-        
+        print(session_doc["summary"])
         cloudant_client.post_document(
             db=DB_NAME,
             document=session_doc

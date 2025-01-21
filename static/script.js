@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (response.ok) {
                 sessionId = data.session_id;
-                console.log("SessionID: ", sessionId) //debugging
+                console.log("SessionID: ", sessionId);
                 fileUploadArea.style.display = 'none';
                 chatArea.style.display = 'block';
                 addMessageToChat('user', formData.get('query'));
@@ -70,7 +70,21 @@ document.addEventListener('DOMContentLoaded', () => {
     function addMessageToChat(sender, message) {
         const messageElement = document.createElement('div');
         messageElement.classList.add('chat-message', `${sender}-message`);
-        messageElement.textContent = message;
+        
+        // Create label element
+        const labelElement = document.createElement('strong');
+        labelElement.classList.add('message-label');
+        labelElement.textContent = sender === 'user' ? 'User: ' : 'Assistant: ';
+        
+        // Create message content element
+        const messageContent = document.createElement('span');
+        messageContent.classList.add('message-content');
+        messageContent.textContent = message;
+        
+        // Append label and content to message element
+        messageElement.appendChild(labelElement);
+        messageElement.appendChild(messageContent);
+        
         chatHistory.appendChild(messageElement);
         chatHistory.scrollTop = chatHistory.scrollHeight;
     }
