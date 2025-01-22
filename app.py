@@ -175,7 +175,7 @@ def ask():
 
 @app.route("/audio/<path:filename>")
 def serve_audio(filename):
-    return send_from_directory("src/assets/audio", filename)
+    return send_from_directory("src/assets/audio/model_responses", filename)
 @app.route("/text-to-speech", methods=["POST"])
 def text_to_speech_route():
     data = request.json
@@ -185,7 +185,7 @@ def text_to_speech_route():
         return jsonify({"error": "Text is required"}), 400
 
     try:
-        audio_dir = "src/assets/audio"
+        audio_dir = "src/assets/audio/model_responses"
         os.makedirs(audio_dir, exist_ok=True)
 
         response = text_to_speech.synthesize(
