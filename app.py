@@ -9,16 +9,19 @@ from src.components.plant_image_analyzer import PlantImageAnalyzer
 from src.components.summary import Summarizer
 from src.components.user_query import UserQUERY
 from src.components.extract import extract_text
+from ibm_watson import TextToSpeechV1
+from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
+
 load_dotenv()
 
 app = Flask(__name__, static_folder='static', template_folder='.')
 
 # model config for LVM
 model_config = ModelConfig(
-    model_id="meta-llama/llama-3-2-11b-vision-instruct",
+    model_id="meta-llama/llama-3-8b-instruct",
     api_key=os.getenv("APIKEY"),
     project_id=os.getenv("PROJECT_ID"),
-    url="https://jp-tok.ml.cloud.ibm.com"
+    url="https://eu-gb.ml.cloud.ibm.com"
 )
 HUGGINGFACE_TOKEN = os.getenv("HUGGINGFACE_TOKEN")
 
@@ -27,7 +30,7 @@ model_config_answering = ModelConfig(
     model_id="ibm/granite-3-8b-instruct",
     api_key=os.getenv("APIKEY"),
     project_id=os.getenv("PROJECT_ID"),
-    url="https://jp-tok.ml.cloud.ibm.com"
+    url="https://eu-gb.ml.cloud.ibm.com"
 )
 
 # creating instances
@@ -39,36 +42,19 @@ authenticator = IAMAuthenticator(os.getenv("CLOUDANT_API_KEY"))
 cloudant_client = CloudantV1(authenticator=authenticator)
 cloudant_client.set_service_url("https://3809a24d-510f-4606-a021-66fd61c13d0b-bluemix.cloudantnosqldb.appdomain.cloud")
 
+
+tts_authenticator = IAMAuthenticator(os.getenv("TEXT_TO_SPEECH_API_KEY"))  
+text_to_speech = TextToSpeechV1(authenticator=tts_authenticator)
+text_to_speech.set_service_url(os.getenv("TEXT_TO_SPEECH_URL")) 
+
 DB_NAME = "session-data"
 
-# Create search index for session_id
-def setup_database():
-    try:
-        cloudant_client.get_database_information(db=DB_NAME).get_result()
-        print(f"Database '{DB_NAME}' exists.")
-        
-        search_index = {
-            "index": {
-                "fields": ["session_id"]
-            },
-            "name": "session-id-index",
-            "type": "json"
-        }
-        
-        try:
-            cloudant_client.post_index(
-                db=DB_NAME,
-                index=search_index
-            ).get_result()
-            print("Search index created/updated successfully.")
-        except Exception as e:
-            print(f"Index setup error: {e}")
-            
-    except Exception as e:
-        print(f"Database setup error: {e}")
-
-setup_database()
-
+try:
+    cloudant_client.get_database_information(db=DB_NAME).get_result()
+    print(f"Database '{DB_NAME}' already exists.")
+except Exception as e:
+    print(f"Database setup error: {e}")
+     
 def get_document_by_session_id(session_id):
     selector = {
         "session_id": session_id
@@ -105,6 +91,7 @@ def upload():
         return jsonify({"error": "No file uploaded"}), 400
 
     session_id = str(uuid4())
+    print(session_id)
     assets_folder = "src/assets"
     if not os.path.exists(assets_folder):
         os.makedirs(assets_folder)
@@ -123,7 +110,9 @@ def upload():
         summary_generator.login_to_huggingface()
         summary_generator.load_model()
         summary = summary_generator.generate_summary_pdf(pdf_content)
+        print(f"Summary of PDF content : {summary}")
         response = generating_answer.answer_a_question(summary, user_query)
+        print(response)
     else:
         return jsonify({"error": "Unsupported file type"}), 400
 
@@ -136,6 +125,7 @@ def upload():
         "session_id": session_id,
         "summary": summary
     }
+    print(session_data)
 
     try:
         cloudant_client.post_document(db=DB_NAME, document=session_data).get_result()
@@ -151,7 +141,7 @@ def ask():
     data = request.json
     query = data.get("query")
     session_id = data.get("session_id")
-    
+    print(session_id)
     if not query or not session_id:
         return jsonify({"error": "Missing query or session_id"}), 400
 
@@ -172,7 +162,7 @@ def ask():
         new_summary = summary_generator.generate_summary(content) 
         
         session_doc["summary"] = new_summary
-        
+        print(session_doc["summary"])
         cloudant_client.post_document(
             db=DB_NAME,
             document=session_doc
@@ -183,5 +173,37 @@ def ask():
         print(f"Error: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+@app.route("/audio/<path:filename>")
+def serve_audio(filename):
+    return send_from_directory("src/assets/audio", filename)
+@app.route("/text-to-speech", methods=["POST"])
+def text_to_speech_route():
+    data = request.json
+    text = data.get("text")
+
+    if not text:
+        return jsonify({"error": "Text is required"}), 400
+
+    try:
+        audio_dir = "src/assets/audio"
+        os.makedirs(audio_dir, exist_ok=True)
+
+        response = text_to_speech.synthesize(
+            text=text,
+            voice='en-US_AllisonV3Voice',
+            accept='audio/mp3'
+        ).get_result().content
+
+        # Generate unique filename
+        filename = f"{uuid4()}.mp3"
+        audio_file = os.path.join(audio_dir, filename)
+        
+        with open(audio_file, "wb") as audio:
+            audio.write(response)
+
+       
+        return jsonify({"audio_url": f"/audio/{filename}"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 if __name__ == "__main__":
     app.run(debug=True)

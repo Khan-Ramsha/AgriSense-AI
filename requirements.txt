@@ -4,3 +4,4 @@ cloudant
 python-dotenv
 ibmcloudant
 PyPDF2
+ibm_watson
