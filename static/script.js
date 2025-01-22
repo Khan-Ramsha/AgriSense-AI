@@ -66,26 +66,73 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('An error occurred while asking a question');
         }
     });
-
     function addMessageToChat(sender, message) {
         const messageElement = document.createElement('div');
         messageElement.classList.add('chat-message', `${sender}-message`);
-        
-        // Create label element
+    
         const labelElement = document.createElement('strong');
         labelElement.classList.add('message-label');
         labelElement.textContent = sender === 'user' ? 'User: ' : 'Assistant: ';
-        
-        // Create message content element
+    
         const messageContent = document.createElement('span');
         messageContent.classList.add('message-content');
         messageContent.textContent = message;
-        
-        // Append label and content to message element
+    
         messageElement.appendChild(labelElement);
         messageElement.appendChild(messageContent);
-        
+    
+        if (sender === 'assistant') {
+            const playButton = document.createElement('button');
+            playButton.textContent = '🔊 Play Audio';
+            playButton.classList.add('play-audio-btn');
+    
+            playButton.addEventListener('click', async () => {
+                try {
+                    playButton.disabled = true;
+                    playButton.textContent = '⌛ Loading...';
+    
+                    const response = await fetch('/text-to-speech', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ text: message })
+                    });
+    
+                    const data = await response.json();
+    
+                    if (response.ok) {
+                        const audio = new Audio(data.audio_url);
+                        
+                        audio.onerror = () => {
+                            console.error('Error loading audio file');
+                            playButton.textContent = '❌ Error';
+                            playButton.disabled = false;
+                        };
+    
+                        audio.oncanplaythrough = () => {
+                            playButton.textContent = '🔊 Play Audio';
+                            playButton.disabled = false;
+                        };
+    
+                        await audio.play();//plays the audio
+                    } else {
+                        throw new Error(data.error || 'Failed to generate audio');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred while playing audio');
+                    playButton.textContent = '❌ Error';
+                } finally {
+                    playButton.disabled = false;
+                }
+            });
+    
+            messageElement.appendChild(playButton);
+        }
+    
         chatHistory.appendChild(messageElement);
         chatHistory.scrollTop = chatHistory.scrollHeight;
     }
+    
 });

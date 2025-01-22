@@ -134,3 +134,22 @@ footer {
     display: inline-block;
     word-wrap: break-word;
 }
+.play-audio-btn {
+    margin-left: 10px; 
+    padding: 8px 10px; 
+    background-color: #4CAF50; 
+    color: white; 
+    border: none; 
+    border-radius: 5px; 
+    cursor: pointer; 
+    font-size: 14px;
+}
+
+.play-audio-btn:hover {
+    background-color: #45a049; 
+}
+
+.play-audio-btn:focus {
+    outline: none;
+    box-shadow: 0 0 4px #4CAF50; 
+}

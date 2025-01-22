@@ -9,13 +9,16 @@ from src.components.plant_image_analyzer import PlantImageAnalyzer
 from src.components.summary import Summarizer
 from src.components.user_query import UserQUERY
 from src.components.extract import extract_text
+from ibm_watson import TextToSpeechV1
+from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
+
 load_dotenv()
 
 app = Flask(__name__, static_folder='static', template_folder='.')
 
 # model config for LVM
 model_config = ModelConfig(
-    model_id="meta-llama/llama-3-2-11b-vision-instruct",
+    model_id="meta-llama/llama-3-8b-instruct",
     api_key=os.getenv("APIKEY"),
     project_id=os.getenv("PROJECT_ID"),
     url="https://eu-gb.ml.cloud.ibm.com"
@@ -38,6 +41,11 @@ generating_answer = UserQUERY(model_config_answering)
 authenticator = IAMAuthenticator(os.getenv("CLOUDANT_API_KEY"))
 cloudant_client = CloudantV1(authenticator=authenticator)
 cloudant_client.set_service_url("https://3809a24d-510f-4606-a021-66fd61c13d0b-bluemix.cloudantnosqldb.appdomain.cloud")
+
+
+tts_authenticator = IAMAuthenticator(os.getenv("TEXT_TO_SPEECH_API_KEY"))  
+text_to_speech = TextToSpeechV1(authenticator=tts_authenticator)
+text_to_speech.set_service_url(os.getenv("TEXT_TO_SPEECH_URL")) 
 
 DB_NAME = "session-data"
 
@@ -165,5 +173,37 @@ def ask():
         print(f"Error: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+@app.route("/audio/<path:filename>")
+def serve_audio(filename):
+    return send_from_directory("src/assets/audio", filename)
+@app.route("/text-to-speech", methods=["POST"])
+def text_to_speech_route():
+    data = request.json
+    text = data.get("text")
+
+    if not text:
+        return jsonify({"error": "Text is required"}), 400
+
+    try:
+        audio_dir = "src/assets/audio"
+        os.makedirs(audio_dir, exist_ok=True)
+
+        response = text_to_speech.synthesize(
+            text=text,
+            voice='en-US_AllisonV3Voice',
+            accept='audio/mp3'
+        ).get_result().content
+
+        # Generate unique filename
+        filename = f"{uuid4()}.mp3"
+        audio_file = os.path.join(audio_dir, filename)
+        
+        with open(audio_file, "wb") as audio:
+            audio.write(response)
+
+       
+        return jsonify({"audio_url": f"/audio/{filename}"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 if __name__ == "__main__":
     app.run(debug=True)
