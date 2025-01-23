@@ -1,6 +1,6 @@
 class ApiCall:
     @staticmethod
-    def augment_api_request_body(user_query, image):
+    def augment_api_request_body(user_query, encoded_image):
         messages = [
             {
                 "role": "user",
@@ -9,11 +9,11 @@ class ApiCall:
                         "type": "text",
                         "text": (
                            "Analyze the plant image for health issues(diseased, abnormal, or healthy). " 
-                           "Answer to user's question concisely: " + user_query    )
+                           "Answer to user's question concisely: " + user_query)
                     },
                     {
                         "type": "image_url",
-                        "image_url": {"url": f"data:image/jpeg;base64,{image}"}
+                        "image_url": encoded_image
                     }
                 ]
             }
@@ -28,7 +28,7 @@ class ApiCall:
                 "content": [
                     {
                         "type": "text",
-                        "text": ("You are a plant expert assistant.Answer the user's plant-related query using their conversation history:" + content)
+                        "text": ("You are a plant expert assistant.Answer the user's plant-related query using the conversation history:" + content)
                     }
                 ]
             }
@@ -43,7 +43,7 @@ class ApiCall:
                 "content": [
                     {
                         "type": "text",
-                        "text": ("You are a plant expert assistant.Answer the user's plant-related query using the document content:" + content)
+                        "text": ("You are a plant expert.Answer the user's query based on the document content:" + content)
                     }
                 ]
             }

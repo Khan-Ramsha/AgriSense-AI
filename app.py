@@ -11,17 +11,17 @@ from src.components.user_query import UserQUERY
 from src.components.extract import extract_text
 from ibm_watson import TextToSpeechV1
 from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
-
+from src.components.filter import truncate_response
 load_dotenv()
 
 app = Flask(__name__, static_folder='static', template_folder='.')
 
 # model config for LVM
 model_config = ModelConfig(
-    model_id="meta-llama/llama-3-2-11b-vision-instruct",
+    model_id="meta-llama/llama-3-2-90b-vision-instruct",
     api_key=os.getenv("APIKEY"),
     project_id=os.getenv("PROJECT_ID"),
-    url="https://eu-de.ml.cloud.ibm.com"
+    url="https://au-syd.ml.cloud.ibm.com"
 )
 HUGGINGFACE_TOKEN = os.getenv("HUGGINGFACE_TOKEN")
 
@@ -30,7 +30,7 @@ model_config_answering = ModelConfig(
     model_id="ibm/granite-3-8b-instruct",
     api_key=os.getenv("APIKEY"),
     project_id=os.getenv("PROJECT_ID"),
-    url="https://eu-de.ml.cloud.ibm.com"
+    url="https://au-syd.ml.cloud.ibm.com"
 )
 
 # creating instances
@@ -40,14 +40,14 @@ generating_answer = UserQUERY(model_config_answering)
 
 authenticator = IAMAuthenticator(os.getenv("CLOUDANT_API_KEY"))
 cloudant_client = CloudantV1(authenticator=authenticator)
-cloudant_client.set_service_url("https://3809a24d-510f-4606-a021-66fd61c13d0b-bluemix.cloudantnosqldb.appdomain.cloud")
+cloudant_client.set_service_url("https://e00b8948-97c3-4c3b-9545-c1aaa13adeff-bluemix.cloudantnosqldb.appdomain.cloud")
 
 
 tts_authenticator = IAMAuthenticator(os.getenv("TEXT_TO_SPEECH_API_KEY"))  
 text_to_speech = TextToSpeechV1(authenticator=tts_authenticator)
 text_to_speech.set_service_url(os.getenv("TEXT_TO_SPEECH_URL")) 
 
-DB_NAME = "session-data"
+DB_NAME = "session_data"
 
 try:
     cloudant_client.get_database_information(db=DB_NAME).get_result()
@@ -86,7 +86,7 @@ def serve_static(path):
 def service():
     return render_template('/templates/service.html')
 
-
+@app.route("/upload", methods=["POST"])
 @app.route("/upload", methods=["POST"])
 def upload():
     user_query = request.form.get("query")
@@ -96,17 +96,23 @@ def upload():
         return jsonify({"error": "No file uploaded"}), 400
 
     session_id = str(uuid4())
-    print(session_id)
-    assets_folder = "src/assets"
-    if not os.path.exists(assets_folder):
-        os.makedirs(assets_folder)
-
-    file_path = os.path.join(assets_folder, file.filename)
-    file.save(file_path)
+    print(f"Session ID: {session_id}")
     
+    # Save the uploaded file
+    upload_dir = "static/uploads"
+    os.makedirs(upload_dir, exist_ok=True)
+    file_path = os.path.join(upload_dir, file.filename)
+    file.save(file_path)
+
     if file.filename.lower().endswith(('.png', '.jpg', '.jpeg')):
-        encoded_image = plant_analyzer.encode_image(file.read())
-        response = plant_analyzer.analyze_plant_image(user_query, encoded_image)
+        encoded = plant_analyzer.encode_image(file_path)
+        if encoded is None:
+            return jsonify({"error": "Failed to encode image"}), 500
+        
+        response = plant_analyzer.analyze_plant_image(user_query, encoded)
+        response = truncate_response(response)
+        print(f"Response from Model: {response}")
+
     elif file.filename.lower().endswith('.pdf'):
         with open(file_path, 'rb') as f:
             file_content = f.read()
@@ -117,6 +123,7 @@ def upload():
         summary = summary_generator.generate_summary_pdf(pdf_content)
         print(f"Summary of PDF content : {summary}")
         response = generating_answer.answer_a_question(summary, user_query)
+        response = truncate_response(response)
         print(response)
     else:
         return jsonify({"error": "Unsupported file type"}), 400
@@ -159,6 +166,8 @@ def ask():
         summary = session_doc.get("summary", "")
         print(f"current session summary: {summary}")
         response = generating_answer.passTOLLM(summary, query)
+        print(response)
+        response = truncate_response(response)
         print(f"Response from Model: {response}")
 
         content = f"User asked query: {query} \n Response from LLM: {response} \n User's conversation history so far: {summary}"
