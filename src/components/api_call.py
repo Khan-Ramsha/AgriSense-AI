@@ -1,6 +1,6 @@
 class ApiCall:
     @staticmethod
-    def augment_api_request_body(user_query, encoded_image):
+    def augment_api_request_body(user_query, image):
         messages = [
             {
                 "role": "user",
@@ -13,7 +13,9 @@ class ApiCall:
                     },
                     {
                         "type": "image_url",
-                        "image_url": encoded_image
+                        "image_url": {
+                        "url": f"data:image/jpeg;base64,{image}"
+                        }
                     }
                 ]
             }

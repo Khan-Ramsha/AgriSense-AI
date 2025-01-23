@@ -8,15 +8,14 @@ import imghdr
 class PlantImageAnalyzer:
     def __init__(self, model_config):
         self.model = model_config.get_model()
-    @staticmethod
 
+    @staticmethod
     def encode_image(file_path):
-        """Encode an image from a local file path to base64"""
+        """Encode an image from a local file path to base64."""
         try:
             with open(file_path, 'rb') as image_file:
-                # Return the base64 encoded image URL
                 base64_image = base64.b64encode(image_file.read()).decode("utf-8")
-                return f"data:image/jpeg;base64,{base64_image}"
+                return base64_image 
         except Exception as e:
             print(f"Error encoding image: {e}")
             return None

@@ -18,7 +18,7 @@ app = Flask(__name__, static_folder='static', template_folder='.')
 
 # model config for LVM
 model_config = ModelConfig(
-    model_id="meta-llama/llama-3-2-90b-vision-instruct",
+    model_id="meta-llama/llama-3-2-11b-vision-instruct",
     api_key=os.getenv("APIKEY"),
     project_id=os.getenv("PROJECT_ID"),
     url="https://au-syd.ml.cloud.ibm.com"
@@ -87,7 +87,6 @@ def service():
     return render_template('/templates/service.html')
 
 @app.route("/upload", methods=["POST"])
-@app.route("/upload", methods=["POST"])
 def upload():
     user_query = request.form.get("query")
     file = request.files.get("file")
@@ -98,20 +97,18 @@ def upload():
     session_id = str(uuid4())
     print(f"Session ID: {session_id}")
     
-    # Save the uploaded file
     upload_dir = "static/uploads"
     os.makedirs(upload_dir, exist_ok=True)
     file_path = os.path.join(upload_dir, file.filename)
     file.save(file_path)
 
-    if file.filename.lower().endswith(('.png', '.jpg', '.jpeg')):
-        encoded = plant_analyzer.encode_image(file_path)
-        if encoded is None:
-            return jsonify({"error": "Failed to encode image"}), 500
-        
-        response = plant_analyzer.analyze_plant_image(user_query, encoded)
-        response = truncate_response(response)
-        print(f"Response from Model: {response}")
+    if file.filename.lower().endswith((".png", ".jpg", ".jpeg")):
+                encoded = plant_analyzer.encode_image(file_path)
+                if not encoded:
+                    raise Exception("Failed to encode image")
+                response = plant_analyzer.analyze_plant_image(user_query, encoded)
+                response = truncate_response(response)
+                print(f"Response from Model: {response}")
 
     elif file.filename.lower().endswith('.pdf'):
         with open(file_path, 'rb') as f:
@@ -143,7 +140,7 @@ def upload():
         cloudant_client.post_document(db=DB_NAME, document=session_data).get_result()
         return jsonify({
             "response": response,
-            "session_id": session_id  # Include session_id in response
+            "session_id": session_id 
         })
     except Exception as e:
         return jsonify({"error": f"Failed to store session data: {str(e)}"}), 500
