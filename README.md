@@ -1,34 +1,46 @@
 # AgriSense-AI 🌱
 
-The Farmer's Assistant App is a smart companion designed for plant care and farming. This application leverages IBM's cutting-edge AI and cloud services to provide users with actionable insights about plant health, farming techniques, and crop care. It combines powerful vision and language models with session-based conversational capabilities to deliver context-aware and accurate responses.
+## Overview
+AgriSense-AI is an innovative agricultural assistance application that leverages cutting-edge AI technologies to provide comprehensive plant care and farming insights. By integrating advanced vision and language models, the app offers intelligent, context-aware support for farmers and plant enthusiasts.
 
-### Features
-- Detect diseases using IBM Watson's Language & Vision Models by just uploading images
--  Upload documents containing plant-related information (e.g., history, care), Ask questions about the document's content using IBM Watson's Large Language Models (LLM).
-- Session-Based Conversations
+## Key Features
 
-- Maintains session history using IBM Cloudant, Automatically appends summaries of past interactions for context-aware responses, Converts model responses into audio using IBM Text-to-Speech service.
-- Utilizes IBM's Granite model for text-based analysis, Leverages Meta Llama model for robust language processing.
+### 🖼️ Disease Detection
+- Utilize IBM Watson's Vision Models for precise plant disease identification
+- Upload images for instant, accurate diagnostic analysis
 
-### Tech Stack
-Backend Framework: Flask
+### 📄 Document Intelligence
+- Upload plant-related documents
+- Ask context-specific questions using advanced language models
+- Extract valuable insights from uploaded materials
 
-Database: IBM Cloudant
+### 💬 Intelligent Conversations
+- Maintain context-aware conversation sessions
+- Leverage session history for more meaningful interactions
 
-AI Models:
+### 🔊 Audio Assistance
+- Convert textual responses to audio using IBM Text-to-Speech service
+- Enhance accessibility and user experience
 
-IBM Watson Language & Vision Models (LVM)
+## Technology Stack
 
-IBM Watson Large Language Models (LLM) (Granite & Meta Llama)
+### Backend
+- **Framework**: Flask
+- **Database**: IBM Cloudant
 
+### AI Technologies
+- **Vision Analysis**: IBM Watson Language & Vision Models
+- **Natural Language Processing**: 
+  - IBM Granite Model
+  - Meta Llama Model
+- **Speech**: IBM Text-to-Speech Service
 
-Text-to-Speech: IBM Text-to-Speech Service
+## Prerequisites
 
-### Requirements
-Python 3.8+
-
-IBM Cloud account (to set up Watson services and Cloudant)
-
+### System Requirements
+- Python 3.8+
+- Active IBM Cloud account
+- 
 ### Installation
 
 1. Clone the repository:
