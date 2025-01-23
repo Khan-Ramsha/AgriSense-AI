@@ -49,7 +49,7 @@ AgriSense-AI is an innovative agricultural assistance application that leverages
    https://github.com/Ayaan-tech/AgriSense-AI.git
    ```
    ``` bash
-       cd IntelliBot
+       cd AgriSense-AI
    ```
 
 2. Install the dependencies:
