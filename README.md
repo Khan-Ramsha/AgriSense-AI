@@ -58,7 +58,7 @@ AgriSense-AI is an innovative agricultural assistance application that leverages
     pip install -r requirements.txt
     ```
 
-3. Create a .env file and add your API keys & URL, Refer to .env.example file.
+3. Create a .env file in the project root and add your API keys & URL, Refer to .env.example file.
   
 4. Run the app:
 
