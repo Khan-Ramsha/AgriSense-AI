@@ -10,22 +10,22 @@
 <body>
     <div class="container">
         <header>
-            <h1>Farmer's Assistant</h1>
-            <p>Your AI-powered farming companion</p>
+            <h1>Agricultural Assistant</h1>
+            <p>A Smart Companion for Plant Care and Farming</p>
         </header>
-        
+        <div class="quote">🌱 Helping Farmers Grow Smarter</div>
         <main>
             <section id="interaction-section">
-                <div id="file-upload-area">
+                <div id="file-upload-area" class="card">
                     <h2>Upload Image or Document</h2>
                     <form id="upload-form">
                         <div class="form-group">
-                            <label for="file">Choose a file:</label>
+                            <label for="file"> 📂 Choose a file (Image or PDF):</label>
                             <input type="file" id="file" name="file" accept="image/*,.pdf" required>
                         </div>
                         <div class="form-group">
-                            <label for="query">Your question:</label>
-                            <textarea id="query" name="query" rows="3" placeholder="Ask about the uploaded file..." required></textarea>
+                            <label for="query">❓ Enter your query:</label>
+                            <textarea id="query" name="query" rows="2" placeholder="Ask about the uploaded file..." required></textarea>
                         </div>
                         <button type="submit" class="btn">Upload & Ask</button>
                     </form>
@@ -35,19 +35,21 @@
                     <div id="chat-history"></div>
                     <form id="chat-form">
                         <div class="form-group">
-                            <label for="chat-query">Your question:</label>
+                            <label for="chat-query">❓ Enter your query:</label>
                             <textarea id="chat-query" name="query" rows="3" placeholder="Ask a follow-up question..." required></textarea>
                         </div>
                         <button type="submit" class="btn">Ask</button>
                     </form>
                 </div>
             </section>
-        </main>
 
-        <footer>
-            <p>&copy; 2024 Farmer's Assistant. All rights reserved.</p>
-        </footer>
+        </main>
     </div>
+
+
+    <footer>
+        <p>&copy; 2025 Farmer's Assistant. Designed for farmers with care.</p>
+    </footer>
 
     <script src="/static/script.js"></script>
 </body>

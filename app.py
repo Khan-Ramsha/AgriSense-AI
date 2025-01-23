@@ -18,10 +18,10 @@ app = Flask(__name__, static_folder='static', template_folder='.')
 
 # model config for LVM
 model_config = ModelConfig(
-    model_id="meta-llama/llama-3-8b-instruct",
+    model_id="meta-llama/llama-3-2-11b-vision-instruct",
     api_key=os.getenv("APIKEY"),
     project_id=os.getenv("PROJECT_ID"),
-    url="https://eu-gb.ml.cloud.ibm.com"
+    url="https://eu-de.ml.cloud.ibm.com"
 )
 HUGGINGFACE_TOKEN = os.getenv("HUGGINGFACE_TOKEN")
 
@@ -30,7 +30,7 @@ model_config_answering = ModelConfig(
     model_id="ibm/granite-3-8b-instruct",
     api_key=os.getenv("APIKEY"),
     project_id=os.getenv("PROJECT_ID"),
-    url="https://eu-gb.ml.cloud.ibm.com"
+    url="https://eu-de.ml.cloud.ibm.com"
 )
 
 # creating instances
@@ -81,6 +81,11 @@ def index():
 @app.route('/static/<path:path>')
 def serve_static(path):
     return send_from_directory('static', path)
+
+@app.route('/service')
+def service():
+    return render_template('/templates/service.html')
+
 
 @app.route("/upload", methods=["POST"])
 def upload():
