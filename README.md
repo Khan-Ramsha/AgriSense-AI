@@ -40,7 +40,7 @@ AgriSense-AI is an innovative agricultural assistance application that leverages
 ### System Requirements
 - Python 3.8+
 - Active IBM Cloud account
-- 
+  
 ### Installation
 
 1. Clone the repository:
